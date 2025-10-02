@@ -1,78 +1,153 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Totem - SeuNegócio</title>
-<style>
-body { font-family: Arial, sans-serif; padding: 20px; background:#f2f2f2;}
-h1,h2,h3{margin:10px 0;}
-.section{background:#fff;padding:15px;margin-bottom:20px;border-radius:8px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
-img{max-width:100%;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Totem - SeuNegócio</title>
+  <link rel="stylesheet" href="painel.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
+    header { background: #3498db; color:#fff; padding:10px; text-align:center; }
+    .section { padding:15px; margin:10px auto; max-width:1200px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+    h2 { margin-top:0; color:#333; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:10px; }
+    .item-container { background:#f0f0f0; padding:10px; border-radius:6px; display:flex; flex-direction:column; align-items:flex-start; }
+    .item-container img { max-width:100%; border-radius:4px; margin-bottom:5px; }
+    a { color:#3498db; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+  </style>
 </head>
 <body>
-<h1>🛒 Totem SeuNegócio</h1>
-<div id="totemContent">Carregando...</div>
+  <header>
+    <h1 id="lojaNome">Carregando...</h1>
+    <img id="lojaLogo" src="" alt="Logo" style="max-height:80px;">
+  </header>
 
-<script>
-async function carregarTotem() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const binId = urlParams.get("bin");
-    if (!binId) {
-        document.getElementById("totemContent").innerText = "❌ Bin ID não fornecido!";
+  <div id="conteudo">
+    <div class="section" id="produtosSec">
+      <h2>Produtos</h2>
+      <div class="grid" id="produtosContainer"></div>
+    </div>
+
+    <div class="section" id="clientesSec">
+      <h2>Clientes</h2>
+      <div class="grid" id="clientesContainer"></div>
+    </div>
+
+    <div class="section" id="cuponsSec">
+      <h2>Cupons</h2>
+      <div class="grid" id="cuponsContainer"></div>
+    </div>
+
+    <div class="section" id="publicidadeSec">
+      <h2>Publicidade</h2>
+      <div id="publicidadeContainer"></div>
+    </div>
+
+    <div class="section" id="coberturaSec">
+      <h2>Cobertura</h2>
+      <div class="grid" id="coberturaContainer"></div>
+    </div>
+
+    <div class="section" id="dadosLojaSec">
+      <h2>Dados da Loja</h2>
+      <div id="dadosLojaContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    async function carregarTotem() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const binId = urlParams.get('bin');
+      if(!binId){
+        alert("❌ Nenhum bin=ID fornecido na URL");
         return;
-    }
+      }
 
-    try {
+      try {
         const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`);
+        if(!res.ok) throw new Error("Erro ao carregar JSONBin");
         const json = await res.json();
-        const data = json.record;
-        renderTotem(data);
-    } catch(err) {
-        console.error(err);
-        document.getElementById("totemContent").innerText = "❌ Erro ao carregar dados do Totem";
+        const state = json.record;
+
+        // Loja
+        document.getElementById("lojaNome").textContent = state.loja.nome || "Loja";
+        document.getElementById("lojaLogo").src = state.loja.logo || "";
+
+        // Produtos
+        const prodCont = document.getElementById("produtosContainer");
+        prodCont.innerHTML = state.produtos.map(p => `
+          <div class="item-container">
+            <img src="${p.imagem}" alt="${p.nome}">
+            <strong>${p.nome}</strong>
+            <span>R$ ${p.preco.toFixed(2)}</span>
+            <span>${p.categoria} | ${p.subcategoria}</span>
+            <span>${p.modoVenda}</span>
+          </div>
+        `).join("");
+
+        // Clientes
+        const cliCont = document.getElementById("clientesContainer");
+        cliCont.innerHTML = state.clientes.map(c => `
+          <div class="item-container">
+            <strong>${c.nome}</strong>
+            <span>${c.telefone}</span>
+            <span>${c.bairro}</span>
+          </div>
+        `).join("");
+
+        // Cupons
+        const cupCont = document.getElementById("cuponsContainer");
+        cupCont.innerHTML = state.cupons.map(c => `
+          <div class="item-container">
+            <strong>${c.codigo}</strong>
+            <span>${c.tipo}${c.valor}</span>
+            <span>Validade: ${c.validade}</span>
+          </div>
+        `).join("");
+
+        // Publicidade
+        const pubCont = document.getElementById("publicidadeContainer");
+        pubCont.innerHTML = `
+          <p>${state.publicidade.texto}</p>
+          <a href="${state.publicidade.link}" target="_blank">
+            <img src="${state.publicidade.banner}" alt="Banner" style="max-width:100%;">
+          </a>
+          ${state.publicidade.carrossel.map(url=>`<img src="${url}" style="max-width:100%;margin-top:5px;">`).join("")}
+          <p>Instagram: <a href="${state.publicidade.redesSociais.instagram}" target="_blank">${state.publicidade.redesSociais.instagram}</a></p>
+          <p>Facebook: <a href="${state.publicidade.redesSociais.facebook}" target="_blank">${state.publicidade.redesSociais.facebook}</a></p>
+          <p>WhatsApp: <a href="${state.publicidade.redesSociais.whatsapp}" target="_blank">${state.publicidade.redesSociais.whatsapp}</a></p>
+        `;
+
+        // Cobertura
+        const covCont = document.getElementById("coberturaContainer");
+        covCont.innerHTML = state.cobertura.map(c => `
+          <div class="item-container">
+            <strong>${c.nome}</strong>
+            <span>Taxa: R$ ${c.taxa}</span>
+            <span>Tempo: ${c.tempo} min</span>
+          </div>
+        `).join("");
+
+        // Dados da Loja
+        const lojaCont = document.getElementById("dadosLojaContainer");
+        lojaCont.innerHTML = `
+          <p>Telefone: ${state.loja.telefone}</p>
+          <p>PIX: ${state.loja.pix}</p>
+          <p>Banco: ${state.loja.banco}</p>
+          <p>Endereço: ${state.loja.endereco}</p>
+          <p>Horário: ${state.loja.horario}</p>
+          <p>Cor Primária: ${state.loja.corPrimaria}</p>
+          <p>Fonte: ${state.loja.fonte}</p>
+          <p>Modo Escuro: ${state.loja.modoEscuro ? "Ativo" : "Desativado"}</p>
+        `;
+      } catch(e){
+        console.error(e);
+        alert("❌ Erro ao carregar dados do Totem");
+      }
     }
-}
 
-function renderTotem(data) {
-    const container = document.getElementById("totemContent");
-    container.innerHTML = "";
-
-    // Dados da loja
-    const lojaSec = document.createElement("div"); lojaSec.className="section";
-    lojaSec.innerHTML=`<h2>🏪 ${data.dadosLoja.nome || "Loja"}</h2>
-        <img src="${data.dadosLoja.logo || ""}" alt="Logo">
-        <p>${data.dadosLoja.endereco || ""}</p>`;
-    container.appendChild(lojaSec);
-
-    // Produtos
-    const prodSec = document.createElement("div"); prodSec.className="section";
-    prodSec.innerHTML="<h3>Produtos</h3>"+(data.produtos?.map(p=>`<p>${p.nome} - R$${p.preco.toFixed(2)}</p>`).join("")||"Nenhum produto");
-    container.appendChild(prodSec);
-
-    // Clientes (opcional)
-    const cliSec = document.createElement("div"); cliSec.className="section";
-    cliSec.innerHTML="<h3>Clientes</h3>"+(data.clientes?.length ? `<p>Total: ${data.clientes.length}</p>`:"Nenhum cliente");
-    container.appendChild(cliSec);
-
-    // Cupons
-    const cupSec = document.createElement("div"); cupSec.className="section";
-    cupSec.innerHTML="<h3>Cupons</h3>"+(data.cupons?.length ? `<p>${data.cupons.map(c=>c.codigo).join(", ")}</p>`:"Nenhum cupom");
-    container.appendChild(cupSec);
-
-    // Publicidade
-    const pubSec = document.createElement("div"); pubSec.className="section";
-    pubSec.innerHTML="<h3>Publicidade</h3>"+(data.publicidade?.bannerTexto?`<p>${data.publicidade.bannerTexto}</p>`:"Sem publicidade");
-    container.appendChild(pubSec);
-
-    // Cobertura
-    const covSec = document.createElement("div"); covSec.className="section";
-    covSec.innerHTML="<h3>Bairros</h3>"+(data.cobertura?.length?data.cobertura.map(b=>`<p>${b.nome} - R$${b.taxaEntrega} (${b.tempoEstimado} min)</p>`).join(""):"Nenhum bairro");
-    container.appendChild(covSec);
-}
-
-carregarTotem();
-</script>
+    window.onload = carregarTotem;
+  </script>
 </body>
 </html>
