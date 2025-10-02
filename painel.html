@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - SeuNegócio</title>
+  <link rel="stylesheet" href="painel.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Menu lateral -->
+    <aside id="sidebar">
+      <h2>SeuNegócio</h2>
+      <nav id="menu"></nav>
+    </aside>
+
+    <!-- Conteúdo -->
+    <main>
+      <!-- Dashboard -->
+      <section id="dashboard" class="tab active">
+        <h2>📊 Dashboard</h2>
+        <canvas id="vendasChart"></canvas>
+      </section>
+
+      <!-- Categorias -->
+      <section id="categorias" class="tab">
+        <h2>🗂️ Categorias</h2>
+        <div class="form-group">
+          <input type="text" id="novaCategoria" placeholder="Nova Categoria">
+          <button onclick="adicionarCategoria()" class="btn-primary">Adicionar Categoria</button>
+        </div>
+        <div id="category-tree"></div>
+      </section>
+
+      <!-- Modo de Venda -->
+      <section id="modo-venda" class="tab">
+        <h2>⚖️ Modo de Venda</h2>
+        <div class="form-group">
+          <select id="novoModoVenda">
+            <option value="Unidade">Unidade</option>
+            <option value="Kg">Kg</option>
+            <option value="Litro">Litro</option>
+            <option value="Combo">Combo</option>
+          </select>
+          <input type="text" id="novoModoVendaDetalhe" placeholder="Ex: 500g, 1/2 dz">
+          <button onclick="adicionarModoVenda()" class="btn-primary">Adicionar</button>
+        </div>
+      </section>
+
+      <!-- Produtos -->
+      <section id="produtos" class="tab">
+        <h2>📦 Produtos</h2>
+        <div class="form-grid">
+          <input id="prodNome" type="text" placeholder="Nome do Produto">
+          <input id="prodPreco" type="number" step="0.01" placeholder="Preço">
+          <input id="prodImagem" type="url" placeholder="URL da Imagem">
+          <textarea id="prodDescricao" placeholder="Descrição"></textarea>
+          <select id="prodCategoria"></select>
+          <select id="prodSubcategoria"></select>
+          <select id="prodModoVenda"></select>
+          <input id="prodEstoque" type="number" placeholder="Estoque">
+          <label><input id="prodDestaque" type="checkbox"> Destaque</label>
+          <label><input id="prodAtivo" type="checkbox"> Ativo</label>
+        </div>
+        <button id="btnAdicionarProduto" onclick="adicionarProduto()" class="btn-primary">Adicionar Produto</button>
+        <div id="listaProdutosContainer"></div>
+      </section>
+
+      <!-- Clientes -->
+      <section id="clientes" class="tab">
+        <h2>👥 Clientes</h2>
+        <div class="form-grid">
+          <input id="clienteNome" type="text" placeholder="Nome">
+          <input id="clienteTelefone" type="text" placeholder="Telefone">
+          <input id="clienteEndereco" type="text" placeholder="Endereço">
+          <input id="clienteBairro" type="text" placeholder="Bairro">
+          <textarea id="clienteObservacoes" placeholder="Observações"></textarea>
+          <label><input id="clienteNotificacao" type="checkbox"> Aceita Notificações</label>
+        </div>
+        <button onclick="adicionarCliente()" class="btn-primary">Salvar Cliente</button>
+        <div id="listaClientesContainer"></div>
+      </section>
+
+      <!-- Cupons -->
+      <section id="cupons" class="tab">
+        <h2>🎟️ Cupons</h2>
+        <div class="form-grid">
+          <input id="cupomCodigo" type="text" placeholder="Código">
+          <select id="cupomTipo">
+            <option value="%">%</option>
+            <option value="R$">R$</option>
+          </select>
+          <input id="cupomValor" type="number" placeholder="Valor">
+          <input id="cupomValidade" type="date" placeholder="Validade">
+          <input id="cupomPedidoMinimo" type="number" placeholder="Pedido Mínimo">
+          <input id="cupomLimiteUso" type="number" placeholder="Limite de Uso">
+          <textarea id="cupomMensagem" placeholder="Mensagem"></textarea>
+          <label><input id="cupomAtivo" type="checkbox"> Ativo</label>
+        </div>
+        <button onclick="adicionarCupom()" class="btn-primary">Criar Cupom</button>
+        <div id="listaCuponsContainer"></div>
+      </section>
+
+      <!-- Publicidade -->
+      <section id="publicidade" class="tab">
+        <h2>📢 Publicidade</h2>
+        <div class="form-grid">
+          <input id="bannerTexto" type="text" placeholder="Texto do Banner">
+          <input id="bannerImagem" type="url" placeholder="URL Imagem Banner">
+          <input id="bannerLink" type="url" placeholder="Link do Banner">
+          <textarea id="carrosselLinks" placeholder="Links Carrossel (1 por linha)"></textarea>
+          <input id="instagram" type="url" placeholder="Instagram">
+          <input id="facebook" type="url" placeholder="Facebook">
+          <input id="whatsapp" type="url" placeholder="WhatsApp">
+        </div>
+        <button onclick="salvarPublicidade()" class="btn-primary">Salvar Publicidade</button>
+      </section>
+
+      <!-- Dados da Loja -->
+      <section id="dados-loja" class="tab">
+        <h2>🗝️ Dados da Loja</h2>
+        <div class="form-grid">
+          <input id="lojaNome" type="text" placeholder="Nome da Loja">
+          <input id="lojaTelefone" type="text" placeholder="Telefone">
+          <input id="lojaPix" type="text" placeholder="PIX">
+          <input id="lojaBanco" type="text" placeholder="Banco">
+          <textarea id="lojaEndereco" placeholder="Endereço"></textarea>
+          <input id="lojaLogo" type="url" placeholder="Logo (URL)">
+          <textarea id="lojaHorario" placeholder="Horários de Funcionamento"></textarea>
+          <input id="binId" type="text" placeholder="JSONBin ID do cliente">
+        </div>
+      </section>
+
+      <!-- Cobertura -->
+      <section id="cobertura" class="tab">
+        <h2>🗺️ Cobertura</h2>
+        <div class="form-grid">
+          <input id="bairro" type="text" placeholder="Bairro">
+          <input id="taxaEntrega" type="number" placeholder="Taxa de Entrega">
+          <input id="tempoEstimado" type="number" placeholder="Tempo Estimado (min)">
+        </div>
+        <button onclick="adicionarBairro()" class="btn-primary">Adicionar Bairro</button>
+        <div id="listaBairrosContainer"></div>
+      </section>
+
+      <!-- Customizar -->
+      <section id="customizar" class="tab">
+        <h2>🎨 Customizar</h2>
+        <div class="form-grid">
+          <input id="corPrimaria" type="color" value="#3498db">
+          <input id="fonte" type="text" placeholder="Fonte (Ex: Arial)">
+          <label><input id="modoEscuro" type="checkbox"> Modo Escuro</label>
+          <input id="musicaAmbiente" type="url" placeholder="URL Música Ambiente">
+        </div>
+      </section>
+
+      <!-- Preview -->
+      <section id="preview" class="tab">
+        <h2>🖥️ Preview em Tempo Real</h2>
+        <iframe id="previewIframe" style="width:100%;height:600px;border:1px solid #ccc;border-radius:8px;background:#fff;"></iframe>
+      </section>
+
+      <!-- Configurações -->
+      <section id="config" class="tab">
+        <h3>⚙️ Configurações JSONBin</h3>
+        <label for="jsonbinId">JSONBin ID:</label>
+        <input type="text" id="jsonbinId" placeholder="Insira seu JSONBin ID">
+        <label for="masterKey">Master Key:</label>
+        <input type="password" id="masterKey" placeholder="Insira sua Master Key">
+        <button onclick="salvarLocal()" class="btn-primary">💾 Salvar no dispositivo</button>
+        <button onclick="publicarTotem()" class="btn-primary">📤 Publicar no Totem</button>
+      </section>
+    </main>
+  </div>
+
+  <script src="painel.js"></script>
+</body>
+</html>
