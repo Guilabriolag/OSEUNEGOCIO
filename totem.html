@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Totem - SeuNegócio</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background:#f2f2f2;}
+h1,h2,h3{margin:10px 0;}
+.section{background:#fff;padding:15px;margin-bottom:20px;border-radius:8px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
+img{max-width:100%;}
+</style>
+</head>
+<body>
+<h1>🛒 Totem SeuNegócio</h1>
+<div id="totemContent">Carregando...</div>
+
+<script>
+async function carregarTotem() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const binId = urlParams.get("bin");
+    if (!binId) {
+        document.getElementById("totemContent").innerText = "❌ Bin ID não fornecido!";
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`);
+        const json = await res.json();
+        const data = json.record;
+        renderTotem(data);
+    } catch(err) {
+        console.error(err);
+        document.getElementById("totemContent").innerText = "❌ Erro ao carregar dados do Totem";
+    }
+}
+
+function renderTotem(data) {
+    const container = document.getElementById("totemContent");
+    container.innerHTML = "";
+
+    // Dados da loja
+    const lojaSec = document.createElement("div"); lojaSec.className="section";
+    lojaSec.innerHTML=`<h2>🏪 ${data.dadosLoja.nome || "Loja"}</h2>
+        <img src="${data.dadosLoja.logo || ""}" alt="Logo">
+        <p>${data.dadosLoja.endereco || ""}</p>`;
+    container.appendChild(lojaSec);
+
+    // Produtos
+    const prodSec = document.createElement("div"); prodSec.className="section";
+    prodSec.innerHTML="<h3>Produtos</h3>"+(data.produtos?.map(p=>`<p>${p.nome} - R$${p.preco.toFixed(2)}</p>`).join("")||"Nenhum produto");
+    container.appendChild(prodSec);
+
+    // Clientes (opcional)
+    const cliSec = document.createElement("div"); cliSec.className="section";
+    cliSec.innerHTML="<h3>Clientes</h3>"+(data.clientes?.length ? `<p>Total: ${data.clientes.length}</p>`:"Nenhum cliente");
+    container.appendChild(cliSec);
+
+    // Cupons
+    const cupSec = document.createElement("div"); cupSec.className="section";
+    cupSec.innerHTML="<h3>Cupons</h3>"+(data.cupons?.length ? `<p>${data.cupons.map(c=>c.codigo).join(", ")}</p>`:"Nenhum cupom");
+    container.appendChild(cupSec);
+
+    // Publicidade
+    const pubSec = document.createElement("div"); pubSec.className="section";
+    pubSec.innerHTML="<h3>Publicidade</h3>"+(data.publicidade?.bannerTexto?`<p>${data.publicidade.bannerTexto}</p>`:"Sem publicidade");
+    container.appendChild(pubSec);
+
+    // Cobertura
+    const covSec = document.createElement("div"); covSec.className="section";
+    covSec.innerHTML="<h3>Bairros</h3>"+(data.cobertura?.length?data.cobertura.map(b=>`<p>${b.nome} - R$${b.taxaEntrega} (${b.tempoEstimado} min)</p>`).join(""):"Nenhum bairro");
+    container.appendChild(covSec);
+}
+
+carregarTotem();
+</script>
+</body>
+</html>
